@@ -1,7 +1,7 @@
 import os
 from io import BytesIO
-import fitz
 from PIL import Image
+from fitz import fitz
 
 
 class PDFCompress:
@@ -40,19 +40,21 @@ class PDFCompress:
             """
         merges = []
         _file = None
-        with fitz.open(_pdf) as doc:
-            for i, page in enumerate(doc.pages(), start=0):
-                if _pages != -1 and i >= _pages:
-                    break
-                img = page.get_pixmap(dpi=_dpi)  # 将PDF页面转化为图片
-                img_bytes = img.pil_tobytes(format=_type)  # 将图片转为为bytes对象
-                image = Image.open(BytesIO(img_bytes))  # 将bytes对象转为PIL格式的图片对象
-                if i == 0:
-                    _file = image  # 取第一张图片用于创建PDF文档的首页
-                pix: Image.Image = image.quantize(colors=256).convert('RGB')  # 单张图片压缩处理
-                merges.append(pix)  # 组装pdf
-                # tqdm.write(f"\n{i} | success reduced  page: {i}.{_type}")
-        _file.save(_out,
-                   "pdf",  # 用PIL自带的功能保存为PDF格式文件
-                   save_all=True,
-                   append_images=merges[1:])
+        try:
+            with fitz.Document(_pdf) as doc:
+                for i, page in enumerate(doc.pages(), start=0):
+                    if _pages != -1 and i >= _pages:
+                        break
+                    img = page.get_pixmap(dpi=_dpi)  # 将PDF页面转化为图片
+                    img_bytes = img.pil_tobytes(format=_type)  # 将图片转为为bytes对象
+                    image = Image.open(BytesIO(img_bytes))  # 将bytes对象转为PIL格式的图片对象
+                    if i == 0:
+                        _file = image  # 取第一张图片用于创建PDF文档的首页
+                    pix: Image.Image = image.quantize(colors=256).convert('RGB')  # 单张图片压缩处理
+                    merges.append(pix)  # 组装pdf
+            _file.save(_out,
+                       "pdf",  # 用PIL自带的功能保存为PDF格式文件
+                       save_all=True,
+                       append_images=merges[1:])
+        except Exception:
+            print(f'处理文件{_pdf}出错')
