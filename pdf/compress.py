@@ -1,4 +1,5 @@
 import os
+import sys
 from io import BytesIO
 from PIL import Image
 from fitz import fitz
@@ -20,7 +21,8 @@ class PDFCompress:
             for file in files:
                 if not file.endswith(".pdf"):
                     continue
-                print(f'正在压缩文件:{file}')
+                sys.stdout.write(f'正在压缩文件:{file}\n')
+                sys.stdout.flush()
                 PDFCompress.execute_file(os.path.join(root, file), os.path.join(out_put_path, file), dpi, "png", pages)
 
     @staticmethod
